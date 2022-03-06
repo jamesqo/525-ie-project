@@ -1,0 +1,63 @@
+---
+title: "IE Project Part 2"
+output: html_notebook
+---
+
+```{r}
+data <- read.csv("cancer.csv")
+names(data)
+
+# Response variables
+X <- data.frame(data)
+X$ID <- NULL
+X$ClassGrade <- NULL
+
+# Predictor variables
+y1 <- data$Class <- sapply(data$ClassGrade, (function(cg) gsub(".*_", "", cg)))
+y2 <- data$Grade <- sapply(data$ClassGrade, (function(cg) if (cg == "UDH") "" else gsub("_.*", "", cg)))
+```
+
+```{r}
+library(glue)
+library(ggplot2)
+
+# Center the plot title for all plots
+theme_update(plot.title = element_text(hjust = 0.5))
+
+
+for (name in names(X)) {
+  column <- data[[name]]
+  # The ER column needs special treatment since it's string data
+  if (name != "ER") {
+    # Plot histogram
+    p <- ggplot(data = data, aes(x = get(name), fill = Class)) +
+      geom_histogram() +
+      ggtitle(glue("Histogram of {name} values")) +
+      xlab(name) +
+      ylab("Frequency")
+    show(p)
+    # Plot boxplot
+    p <- ggplot(data = data, aes(x = get(name), y = factor(0))) +
+      geom_boxplot() +
+      theme(axis.title.y = element_blank(),
+            axis.text.y = element_blank(),
+            axis.ticks.y = element_blank()) +
+      ggtitle(glue("Boxplot of {name} values")) +
+      xlab(name)
+    show(p)
+    # Plot categorical boxplot
+    p <- ggplot(data = data, aes(x = get(name), y = Class)) +
+      geom_boxplot() +
+      ggtitle(glue("Categorical boxplot of {name} values")) +
+      xlab(name)
+    show(p)
+  } else {
+    er.data <- data.frame(column[column != ""])
+    names(er.data) <- c("ER")
+    p <- ggplot(er.data, aes(x = ER)) +
+      geom_bar() +
+      ggtitle(glue("Histogram of {name} values"))
+    show(p)
+  }
+}
+```
